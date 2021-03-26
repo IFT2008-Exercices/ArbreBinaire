@@ -1,6 +1,7 @@
 #include "gtest/gtest.h"
 #include "../ArbreBinaire.h"
 #include <sstream>
+#include <vector>
 
 TEST(ArbreBinaire, ConstructeurNoThrow) {
   EXPECT_NO_THROW( ArbreBinaire<int> b ) ; 
@@ -100,4 +101,66 @@ TEST_F(ArbreBinaireTest, operateurAffectation) {
   EXPECT_TRUE(arbre.estSimilaireA(autre)) ; 
   arbre = vide ; 
   EXPECT_TRUE(arbre.estVide ()) ; 
+}
+
+TEST(ArbreBinaire, supprimerUneValeur) {
+  ArbreBinaire<int> arbre ; 
+  arbre.inserer(1) ; 
+  ArbreBinaire<int>::iterator iter = arbre.chercher(1) ; 
+  arbre.supprimer(iter) ; 
+  
+  std::vector<int> attendu {} ; 
+  EXPECT_EQ(attendu, arbre.visiteEnOrdre ()) ; 
+}
+
+TEST(ArbreBinaire, supprimerUneFeuille) {
+  ArbreBinaire<int> arbre ; 
+  arbre.inserer(1) ; 
+  arbre.inserer(0) ; 
+  ArbreBinaire<int>::iterator iter = arbre.chercher(0) ; 
+  arbre.supprimer(iter) ; 
+  
+  std::vector<int> attendu {1} ; 
+  EXPECT_EQ(attendu, arbre.visiteEnOrdre ()) ; 
+}
+
+TEST(ArbreBinaire, supprimerUneRacine) {
+    ArbreBinaire<int> arbre ; 
+  arbre.inserer(1) ; 
+  arbre.inserer(0) ; 
+  ArbreBinaire<int>::iterator iter = arbre.chercher(1) ; 
+  arbre.supprimer(iter) ; 
+  
+  std::vector<int> attendu {0} ; 
+  EXPECT_EQ(attendu, arbre.visiteEnOrdre ()) ; 
+}
+
+TEST_F(ArbreBinaireTest, supprimerUneFeuille) {
+  ArbreBinaire<int>::iterator iter = arbre.chercher(4) ; 
+  std::vector<int> attendu {2, 3, 5, 6, 7, 8} ; 
+  arbre.supprimer (iter) ; 
+  EXPECT_EQ(attendu, arbre.visiteEnOrdre ()) ; 
+}
+
+TEST_F(ArbreBinaireTest, supprimerUnNoeudInterne) {
+  ArbreBinaire<int>::iterator iter = arbre.chercher(3) ; 
+  std::vector<int> attendu {2, 4, 5, 6, 7, 8} ; 
+  arbre.supprimer(iter) ; 
+  EXPECT_EQ(attendu, arbre.visiteEnOrdre()) ; 
+}
+TEST_F (ArbreBinaireTest, rotationGauchAutourDuSommet)
+{
+  std::vector<int> enOrdreAttendu {2, 3, 4, 5, 6, 7, 8} ; 
+  std::vector<int> preOrdreAttendu {7, 5, 3, 2, 4, 6, 8} ; 
+  EXPECT_NO_THROW (arbre.rotationGaucheAutourDuSommet ());
+  EXPECT_EQ(enOrdreAttendu, arbre.visiteEnOrdre ()) ; 
+  EXPECT_EQ(preOrdreAttendu, arbre.visitePreOrdre ()) ; 
+}
+
+TEST_F(ArbreBinaireTest, rotationDroiteAutourDuSommet) {
+   std::vector<int> enOrdreAttendu {2, 3, 4, 5, 6, 7, 8} ; 
+  std::vector<int> preOrdreAttendu {3, 2, 5, 4, 7, 6, 8} ; 
+  EXPECT_NO_THROW (arbre.rotationDroiteAutourDuSommet ());
+  EXPECT_EQ(enOrdreAttendu, arbre.visiteEnOrdre ()) ; 
+  EXPECT_EQ(preOrdreAttendu, arbre.visitePreOrdre ()) ; 
 }

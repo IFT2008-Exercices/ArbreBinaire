@@ -47,7 +47,7 @@ public:
        detruireLeSousArbre(racine) ;
     }
 
-    const ArbreBinaire &operator=(ArbreBinaire autre) {
+    const ArbreBinaire& operator = (ArbreBinaire autre) {
         Noeud *temp = this->racine;
         this->racine = autre.racine;
         autre.racine = temp;
@@ -114,12 +114,12 @@ public:
 
     bool leNoeudEstUnEnfantDeGauche(Noeud *noeud) {
         if (!noeud->reqParent()) return false;
-        return (&(noeud->reqParent()->reqGauche()) == noeud);
+        return ((noeud->reqParent()->reqGauche()) == noeud);
     }
 
     bool leNoeudEstUnEnfantDeDroite(Noeud *noeud) {
         if (!noeud->reqParent()) return false;
-        return (&(noeud->reqParent()->reqDroite()) == noeud);
+        return ((noeud->reqParent()->reqDroite()) == noeud);
     }
 
     Noeud *
@@ -151,6 +151,34 @@ public:
     iterator
     fin() const {
         return iterator(this, nullptr);
+    }
+    
+    void visitePostOrdreDansLeSousArbre(Noeud* sousArbre, std::vector<TValeur>& resultat) const {
+      if (!sousArbre) return ; 
+      visitePostOrdreDansLeSousArbre(sousArbre->reqGauche (), resultat) ; 
+      visitePostOrdreDansLeSousArbre(sousArbre->reqDroite (), resultat) ; 
+      resultat.push_back(sousArbre->reqValeur ()) ; 
+    }
+    
+    std::vector<TValeur>
+    visitePostOrdre() const {
+      std::vector<TValeur> v ; 
+      visitePostOrdreDansLeSousArbre(racine, v) ; 
+      return v ; 
+    }
+    
+    void visitePreOrdreDansLeSousArbre(Noeud* sousArbre, std::vector<TValeur>& resultat) const {
+      if (!sousArbre) return ; 
+      resultat.push_back(sousArbre->reqValeur ()) ; 
+      visitePreOrdreDansLeSousArbre(sousArbre->reqGauche (), resultat) ; 
+      visitePreOrdreDansLeSousArbre(sousArbre->reqDroite (), resultat) ; 
+    }
+    
+    std::vector<TValeur>
+    visitePreOrdre() const {
+      std::vector<TValeur> v ; 
+      visitePreOrdreDansLeSousArbre(racine, v) ; 
+      return v ; 
     }
 
     void
@@ -199,7 +227,7 @@ public:
         if (destination == racine) racine = depart ;
         else if (leNoeudEstUnEnfantDeGauche(destination)) destination->reqParent()->asgEnfantGauche(depart) ;
         else destination->reqParent()->asgEnfantDroite(depart) ;
-        if (depart) depart->asgParent(destination->reqParent()) ;
+        if (depart) depart->asgParent(*(destination->reqParent())) ;
     }
 
 
@@ -209,15 +237,56 @@ public:
         else if (!courant->reqDroite()) transplanter(courant, courant->reqGauche()) ;
         else {
             Noeud* succ = minimumDuSousArbre(courant->reqDroite()) ;
-            if (!succ->estEnfantDe(courant)) {
+            if (!succ->estEnfantDe(*courant)) {
                 transplanter(succ, succ->reqDroite()) ;
                 succ->asgEnfantDroite(courant->reqDroite()) ;
-                succ->reqDroite()->asgParent(courant) ;
+                succ->reqDroite()->asgParent(*courant) ;
             }
             transplanter(courant, succ) ;
-            succ->asgEnfantGauche(courant->asgEnfantGauche()) ;
-            succ->reqGauche()->asgParent(succ) ;
+            succ->asgEnfantGauche(courant->reqGauche()) ;
+            succ->reqGauche()->asgParent(*courant) ;
         }
+        delete courant ; 
+    }
+    
+    void rotationGaucheNoeud(Noeud* x) {
+      if (!x->reqDroite()) throw std::logic_error("Rotation vers la gauche interdite: pas d'enfant à droite.") ; 
+      
+      Noeud* y = x->reqDroite () ; 
+      y->asgParent ( *(x->reqParent ()) ) ; 
+      racine = (y->reqParent() != nullptr) ? racine : y ;
+      x->asgParent( *y ) ; 
+      x->asgEnfantDroite(y->reqGauche ()) ; 
+      y->reqGauche ()->asgParent (*x) ; 
+      y->asgEnfantGauche (x) ; 
+    }
+    
+    void rotationGauche(iterator iter) {
+      rotationGaucheNoeud(iter.reqCourant()) ; 
+    }
+    
+    void rotationDroiteNoeud(Noeud* y) {
+      if (!y->reqGauche()) throw std::logic_error("Rotation vers la droite interdite: pas d'enfant à gauche.") ; 
+      
+      Noeud* x = y->reqGauche() ; 
+      x->asgParent( *(y->reqParent()) ) ; 
+      racine = (x->reqParent() != nullptr) ? racine : x ; 
+      y->asgParent(*x) ; 
+      y->asgEnfantGauche(x->reqDroite()) ; 
+      x->reqDroite()->asgParent(*y) ; 
+      x->asgEnfantDroite(y) ; 
+    }
+    
+    void rotationDroite(iterator iter) {
+      rotationDroiteNoeud(iter.reqCourant()) ; 
+    }
+    
+    void rotationGaucheAutourDuSommet() {
+      rotationGaucheNoeud(racine) ; 
+    }
+    
+    void rotationDroiteAutourDuSommet() {
+      rotationDroiteNoeud(racine) ; 
     }
 
     bool
@@ -230,15 +299,15 @@ public:
         return leSousArbreEstVide(racine);
     }
 
-    const_iterator
+    iterator
     chercher(const TValeur &valeur) const {
         return chercherDansLeSousArbre(valeur, racine);
     }
 
-    const_iterator
+    iterator
     chercherDansLeSousArbre(const TValeur &valeur, Noeud *debut) const {
-        if (!debut) return cfin();
-        if (valeur == debut->reqValeur()) return const_iterator(this, debut);
+        if (!debut) return fin();
+        if (valeur == debut->reqValeur()) return iterator(this, debut);
         if (valeur < debut->reqValeur()) return chercherDansLeSousArbre(valeur, debut->reqGauche());
         return chercherDansLeSousArbre(valeur, debut->reqDroite());
     }

@@ -64,7 +64,7 @@
   {
   public:
 
-    iterator (ArbreBinaire arbre, Noeud* adresse) : const_iterator (arbre, adresse) { }
+    iterator (const ArbreBinaire* arbre, Noeud* adresse) : const_iterator (arbre, adresse) { }
 
     TValeur& operator* ()
     {
