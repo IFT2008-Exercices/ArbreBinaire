@@ -16,7 +16,7 @@ TEST(ArbreBinaire, insererUneValeurIterer) {
   ArbreBinaire<int> b ; 
   std::ostringstream os ; 
   b.inserer(1) ; 
-  for (ArbreBinaire<int>::const_iterator it = b.cdebut (); it != b.cfin (); ++it) {
+  for (ArbreBinaire<int>::inOrder_const_iterator it = b.enOrdreConstDebut (); it != b.enOrdreConstFin (); ++it) {
       os << *it ; 
     }
   EXPECT_EQ("1", os.str()) ; 
@@ -66,14 +66,23 @@ public:
   ArbreBinaire<int> arbre ; 
 };
 
+TEST_F(ArbreBinaireTest, iterateurPreOrdreVisite) {
+  std::vector<int> resultat ; 
+  
+  for (ArbreBinaire<int>::preOrdre_const_iterator iter = arbre.preOrdreConstDebut (); iter != arbre.preOrdreConstFin (); ++iter)
+    resultat.push_back(*iter) ; 
+  
+  EXPECT_EQ(arbre.visitePreOrdre (), resultat) ; 
+}
+
 TEST_F(ArbreBinaireTest, chercherValeurPresente) {
-  ArbreBinaire<int>::const_iterator it = arbre.chercher(6) ; 
+  ArbreBinaire<int>::inOrder_const_iterator it = arbre.chercher(6) ; 
   EXPECT_EQ(6, *it) ; 
 }
 
 TEST_F(ArbreBinaireTest, chercherValeurAbsente) {
-  ArbreBinaire<int>::const_iterator it = arbre.chercher(25) ; 
-  EXPECT_EQ(arbre.cfin (), it) ; 
+  ArbreBinaire<int>::inOrder_const_iterator it = arbre.chercher(25) ; 
+  EXPECT_EQ(arbre.enOrdreConstFin (), it) ; 
 }
 
 TEST_F(ArbreBinaireTest, estSimilaireALuiMeme) {
@@ -106,7 +115,7 @@ TEST_F(ArbreBinaireTest, operateurAffectation) {
 TEST(ArbreBinaire, supprimerUneValeur) {
   ArbreBinaire<int> arbre ; 
   arbre.inserer(1) ; 
-  ArbreBinaire<int>::iterator iter = arbre.chercher(1) ; 
+  ArbreBinaire<int>::inOrder_iterator iter = arbre.chercher(1) ; 
   arbre.supprimer(iter) ; 
   
   std::vector<int> attendu {} ; 
@@ -117,7 +126,7 @@ TEST(ArbreBinaire, supprimerUneFeuille) {
   ArbreBinaire<int> arbre ; 
   arbre.inserer(1) ; 
   arbre.inserer(0) ; 
-  ArbreBinaire<int>::iterator iter = arbre.chercher(0) ; 
+  ArbreBinaire<int>::inOrder_iterator iter = arbre.chercher(0) ; 
   arbre.supprimer(iter) ; 
   
   std::vector<int> attendu {1} ; 
@@ -128,7 +137,7 @@ TEST(ArbreBinaire, supprimerUneRacine) {
     ArbreBinaire<int> arbre ; 
   arbre.inserer(1) ; 
   arbre.inserer(0) ; 
-  ArbreBinaire<int>::iterator iter = arbre.chercher(1) ; 
+  ArbreBinaire<int>::inOrder_iterator iter = arbre.chercher(1) ; 
   arbre.supprimer(iter) ; 
   
   std::vector<int> attendu {0} ; 
@@ -136,14 +145,14 @@ TEST(ArbreBinaire, supprimerUneRacine) {
 }
 
 TEST_F(ArbreBinaireTest, supprimerUneFeuille) {
-  ArbreBinaire<int>::iterator iter = arbre.chercher(4) ; 
+  ArbreBinaire<int>::inOrder_iterator iter = arbre.chercher(4) ; 
   std::vector<int> attendu {2, 3, 5, 6, 7, 8} ; 
   arbre.supprimer (iter) ; 
   EXPECT_EQ(attendu, arbre.visiteEnOrdre ()) ; 
 }
 
 TEST_F(ArbreBinaireTest, supprimerUnNoeudInterne) {
-  ArbreBinaire<int>::iterator iter = arbre.chercher(3) ; 
+  ArbreBinaire<int>::inOrder_iterator iter = arbre.chercher(3) ; 
   std::vector<int> attendu {2, 4, 5, 6, 7, 8} ; 
   arbre.supprimer(iter) ; 
   EXPECT_EQ(attendu, arbre.visiteEnOrdre()) ; 
